@@ -39,7 +39,7 @@ jobs:
         make
 
     - name: Create binary tar.gz
-      run: mv build && tar -czf apfs-fuse-$ARCH.tar.gz apfs*
+      run: cd build && tar -czf apfs-fuse-$ARCH.tar.gz apfs*
 
     - name: Release
       uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
