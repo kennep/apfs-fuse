@@ -1,0 +1,50 @@
+on:
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0
+
+name: Release
+
+jobs:
+  release_linux:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64]
+
+    env:
+      ARCH: ${{ matrix.arch }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo dpkg --add-architecture $ARCH
+        sudo apt-get update
+        sudo apt-get install -y g++-multilib fuse libfuse3-dev:$ARCH bzip2:$ARCH libbz2-dev:$ARCH cmake git libattr1-dev:$ARCH zlib1g-dev:$ARCH
+
+    - name: Get submodules
+      run: |
+        git submodule init
+        git submodule update
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+    - name: Create binary tar.gz
+      run: mv build && tar -czf apfs-fuse-$ARCH.tar.gz apfs*
+
+    - name: Release
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+      with:
+        files: |
+          build/apfs-fuse-${{ matrix. arch }}.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
